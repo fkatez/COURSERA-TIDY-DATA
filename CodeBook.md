@@ -21,4 +21,5 @@ Creating a second, independent tidy data set with the average of each variable f
 
 NOTE: The code takes for granted all the data is present in the same folder, un-compressed and without names altered. About variables (see my note in the main R-code where i copied all the datasets into one folder):
         
-        x_train, y_train, x_test, y_test, subject_train and subject_test contain the data from the downloaded files. x_data, y_data and subject_data merge the previous datasets to further analysis. features contains the correct names for the x_data dataset, which are applied to the column names stored in
+#About the variables of the project
+x_train, y_train, x_test, y_test, subject_train and subject_test contain the data from the downloaded files. x_data, y_data and subject_data merge the previous datasets to further analysis. features contains the correct names for the x_data dataset, which are applied to the column names stored
