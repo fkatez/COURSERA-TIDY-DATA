@@ -1,5 +1,5 @@
 
-#1. Downloading and unzipping dataset
+#1. Here i first downloading and unzip the dataset into my working directory
 
 if(!file.exists("./data")){dir.create("./data")}
 fileUrl <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
@@ -7,6 +7,12 @@ download.file(fileUrl,destfile="./data/Dataset.zip")
 
 # Unzip dataSet to /data directory
 unzip(zipfile="./data/Dataset.zip",exdir="./data")
+
+#NOTE: I tried to automatically create the directory using the command lines above, but was not very successful in my attemp
+#Since i could not make code to run well. I resorted to more familiar approach of downloading the necessary data files 
+#in my own folder and set the working directory as below. I downloaded all the data and copied all the data files into 
+#the folder "train"
+##########################################################################################################################
 
 #2. Merging the training and the test sets to create one data set:
 #2.1 Reading files
