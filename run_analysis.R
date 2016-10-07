@@ -1,89 +1,139 @@
+## Getting and Cleaning the Data project assignment
 
-#1. Here i first downloading and unzip the dataset into my working directory
+library(tools) 
+library(data.table) 
+library(dplyr) 
 
-if(!file.exists("./data")){dir.create("./data")}
-fileUrl <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
-download.file(fileUrl,destfile="./data/Dataset.zip")
-
-# Unzip dataSet to /data directory
-unzip(zipfile="./data/Dataset.zip",exdir="./data")
-
-#NOTE: I tried to automatically create the directory using the command lines above, but was not very successful in my attemp
-#Since i could not make code to run well. I resorted to more familiar approach of downloading the necessary data files 
-#in my own folder and set the working directory as below. I downloaded all the data and copied all the data files into 
-#the folder "train"
-##########################################################################################################################
-
-#2. Merging the training and the test sets to create one data set:
-#2.1 Reading files
-
-#SETTING THE WORKING DIRECTORY TO MY COMPUTER
-setwd("C:/Users/marshy/Desktop/Coursera/data/Dataset/UCI HAR Dataset/train")
+### Here i download and unzip the main files from the given internet link  
 
 
-# Reading trainings tables:
-x_train <- read.table("./X_train.txt")
-y_train <- read.table("./y_train.txt")
-subject_train <- read.table("./subject_train.txt")
+if(!file.exists("./data")){ 
+        print("creating the directoy of the data in home directory") 
+        dir.create("./data") 
+} 
 
-# Reading testing tables:
-x_test <- read.table("./X_test.txt")
-y_test <- read.table("./y_test.txt")
-subject_test <- read.table("./subject_test.txt")
 
-# Reading feature vector:
-features <- read.table('./features.txt')
+### here i delete the zipped file/s from the working directory if it all it exists 
 
-# Reading activity labels:
-activityLabels = read.table('./activity_labels.txt')
+if(file.exists("./data/week_4data.zip")) { 
+        filenm <- file_path_as_absolute("./data/week_4data.zip") 
+        if (file.remove(filenm)) { 
+                print(c("deleting existing zip file from the directory: file name=",filenm)) 
+        } else { 
+                stop("Error deleting existing zip file") 
+        } 
+} 
 
-#2.2 Assigning column names:
-        
-        colnames(x_train) <- features[,2] 
-colnames(y_train) <-"activityId"
-colnames(subject_train) <- "subjectId"
+#this is the internet path to the original data
+fileUrl = "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip" 
 
-colnames(x_test) <- features[,2] 
-colnames(y_test) <- "activityId"
-colnames(subject_test) <- "subjectId"
 
-colnames(activityLabels) <- c('activityId','activityType')
+print("downloading the project dataset as week_4data.zip") 
+download.file(fileUrl,destfile="./data/week_4data.zip") 
 
-#2.3 Merging all data in one set:
-        
-        mrg_train <- cbind(y_train, subject_train, x_train)
-mrg_test <- cbind(y_test, subject_test, x_test)
-setAllInOne <- rbind(mrg_train, mrg_test)
+print("unzipping the files in a folder under data directory") 
+unzip("./data/week_4data.zip",exdir="./data",overwrite = TRUE) 
 
-#3. Extracting only the measurements on the mean and standard deviation for each measurement
-#3.1 Reading column names:
-        
-        colNames <- colnames(setAllInOne)
 
-#3.2 Create vector for defining ID, mean and standard deviation:
-        
-        mean_and_std <- (grepl("activityId" , colNames) | 
-                                 grepl("subjectId" , colNames) | 
-                                 grepl("mean.." , colNames) | 
-                                 grepl("std.." , colNames) 
-        )
+print("### completed downloading and unzipping the files ###") 
 
-#3.3 Making nessesary subset from setAllInOne:
-        
-        setForMeanAndStd <- setAllInOne[ , mean_and_std == TRUE]
 
-#4. Using descriptive activity names to name the activities in the data set:
-        
-        setWithActivityNames <- merge(setForMeanAndStd, activityLabels,
-                                      by='activityId',
-                                      all.x=TRUE)
+###Step 1: The first step here merges the training & test datasets to have one dataset. 
 
-#5. Creating a second, independent tidy data set with the average of each variable for each activity and each subject:
-#5.1 Making second tidy data set
 
-secTidySet <- aggregate(. ~subjectId + activityId, setWithActivityNames, mean)
-secTidySet <- secTidySet[order(secTidySet$subjectId, secTidySet$activityId),]
+# Reading numerous data files needed for the analysis 
+#read activity labels 
+activity <- read.table("c:./data/UCI HAr Dataset/activity_labels.txt")      
 
-#5.2 Writing second tidy data set in txt file
+#reading features data
+features <- read.table("c:./data/UCI HAr Dataset/features.txt")             
 
-write.table(secTidySet, "secTidySet.txt", row.name=FALSE)
+
+sub_train <- read.table("c:./data/UCI HAr Dataset/train/subject_train.txt")  
+y_train <- read.table("c:./data/UCI HAr Dataset/train/Y_train.txt")         
+x_train <- read.table("c:./data/UCI HAr Dataset/train/X_train.txt")         
+
+
+sub_test <- read.table("c:./data/UCI HAr Dataset/test/subject_test.txt")     
+y_test <- read.table("c:./data/UCI HAr Dataset/test/Y_test.txt")                   
+x_test <- read.table("c:./data/UCI HAr Dataset/test/X_test.txt")            
+
+#combining the subject, activity & measurements in the training data 
+training_data <- cbind(sub_train, y_train,x_train) 
+
+#combining subject, activity and measurements in the test data
+test_data <- cbind(sub_test, y_test,x_test)                                  
+
+#merging the training and test observations into one dataset
+alldata <- rbind(training_data,test_data)                                    
+
+
+#transposing the features data to create header rows
+features_t <- t(features) 
+
+#lets append the data here
+header_t <- cbind("subjectid","activityid",features_t)                       
+header <- header_t[2,]                                                      
+colnames(alldata) <- header  #step 1 ends here
+print("### step 1 of the project is done here to have a merged dataset with the needed data files  ###") 
+
+
+
+### Step 2: Extracting the measurements: mean and standard deviations 
+
+hdr_std <- grep("std()",features_t,value=TRUE)                               
+hdr_mean <- grep("mean",features_t,value=TRUE)                               
+hdr_alldata <- c("subjectid","activityid",hdr_mean,hdr_std)                  
+
+extract_temp <- alldata[hdr_alldata]                                         
+
+print("### Step 2 of project of extracting the means and standard deviations ends here.###") 
+
+
+
+### Step 3: Naming activities in the main data set. ###  
+
+extract <- merge(activity,extract_temp,by.x="V1",by.y="activityid",all=FALSE)      
+
+
+print("### End of step 3 of the project that adds activity names. ###") 
+
+
+### Step 4: Labeling the data with appropriate data labels 
+
+colnames(extract)[1] <- "activityid"                          
+colnames(extract)[2] <- "activityname" 
+colnames(extract) <- gsub("^t","time",names(extract)) 
+colnames(extract) <- gsub("^f","freq",names(extract)) 
+colnames(extract) <- gsub("mean\\(\\)","Mean",names(extract)) 
+colnames(extract) <- gsub("std\\(\\)","Std",names(extract)) 
+colnames(extract) <- gsub("meanFreq\\(\\)","meanFreq",names(extract)) 
+colnames(extract) <- gsub("BodyBody","Body",names(extract)) 
+
+
+print("### Step 4 of the project ends here. ###") 
+
+
+### Step 5: Creating the tidy dataset using data from step 4  
+
+exttbl <- data.table(extract) 
+summary_temp <- exttbl[, lapply(.SD,mean), by=c("activityname","subjectid")] 
+summary_data <- arrange(summary_temp,activityid,subjectid)                         
+
+
+print("### End of step 5 ###") 
+
+
+write.table(summary_data,file="./data/secTidySet.txt",row.name=FALSE) 
+
+
+print("Finished writing the data to the data directory") 
+print("End of R-code") 
+
+
+
+
+
+
+
+
